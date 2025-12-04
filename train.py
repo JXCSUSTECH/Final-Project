@@ -5,7 +5,8 @@ CartPole Training & Evaluation with Save/Load (Gymnasium)
 import os
 import numpy as np
 import gymnasium as gym
-from keras.models import load_model
+from tensorflow import keras
+load_model = keras.models.load_model
 from agents.cartpole_dqn import DQNSolver
 from scores.score_logger import ScoreLogger
 import time

@@ -18,9 +18,11 @@ from collections import deque
 from typing import Deque, Tuple, List
 
 import numpy as np
-from keras.models import Sequential
-from keras.layers import Dense
-from keras.optimizers import Adam
+from tensorflow import keras
+load_model = keras.models.load_model
+Sequential = keras.models.Sequential
+Dense = keras.layers.Dense
+Adam = keras.optimizers.Adam
 
 
 # -----------------------------

@@ -28,13 +28,13 @@ Adam = keras.optimizers.Adam
 # -----------------------------
 # Hyperparameters (can be tuned)
 # -----------------------------
-GAMMA = 0.95                # Discount factor γ
+GAMMA = 0.98               # Discount factor γ
 LEARNING_RATE = 0.001       # Learning rate for Adam optimizer
-MEMORY_SIZE = 1000000       # Experience replay buffer capacity
-BATCH_SIZE = 20             # Mini-batch size for learning
+MEMORY_SIZE = 100000       # Experience replay buffer capacity
+BATCH_SIZE = 32            # Mini-batch size for learning
 EXPLORATION_MAX = 1.0       # Initial ε (full exploration)
-EXPLORATION_MIN = 0.01      # Minimum ε (greedy phase)
-EXPLORATION_DECAY = 0.995   # Decay rate for ε per training step
+EXPLORATION_MIN = 0.01    # Minimum ε (greedy phase)
+EXPLORATION_DECAY = 0.997   # Decay rate for ε per training step
 
 
 class DQNSolver:
@@ -56,8 +56,8 @@ class DQNSolver:
         # Q-network definition
         # -----------------------------
         self.model = Sequential()
-        self.model.add(Dense(24, input_shape=(observation_space,), activation="relu"))
-        self.model.add(Dense(24, activation="relu"))
+        self.model.add(Dense(32, input_shape=(observation_space,), activation="relu"))
+        self.model.add(Dense(32, activation="relu"))
         self.model.add(Dense(self.action_space, activation="linear"))
         self.model.compile(loss="mse", optimizer=Adam(learning_rate=LEARNING_RATE))
 

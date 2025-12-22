@@ -21,15 +21,23 @@ SCORES_PNG_PATH = os.path.join(SCORES_DIR, "scores.png")
 SOLVED_CSV_PATH = os.path.join(SCORES_DIR, "solved.csv")
 SOLVED_PNG_PATH = os.path.join(SCORES_DIR, "solved.png")
 
-AVERAGE_SCORE_TO_SOLVE = 195
+AVERAGE_SCORE_TO_SOLVE = 465
+
 CONSECUTIVE_RUNS_TO_SOLVE = 100
 
 
 class ScoreLogger:
     """Logs episode scores and generates plots."""
 
-    def __init__(self, env_name: str):
+    def __init__(self, env_name: str, plot_every: int = 1, enable_plot: bool = True):
+        """
+        :param env_name: 环境名称
+        :param plot_every: 每多少回合才绘图一次（默认每回合）
+        :param enable_plot: 训练阶段是否开启绘图，关闭后只写 CSV
+        """
         self.env_name = env_name
+        self.plot_every = max(1, plot_every)
+        self.enable_plot = enable_plot
         self.scores = deque(maxlen=CONSECUTIVE_RUNS_TO_SOLVE)
 
         os.makedirs(SCORES_DIR, exist_ok=True)
@@ -42,6 +50,45 @@ class ScoreLogger:
     def add_score(self, score: float, run: int):
         """Add a score for a given episode and update logs/plots."""
         self._save_csv(SCORES_CSV_PATH, score)
+
+        # 训练阶段降低绘图频率，或直接关闭绘图
+        if self.enable_plot and run % self.plot_every == 0:
+            self._save_png(
+                input_path=SCORES_CSV_PATH,
+                output_path=SCORES_PNG_PATH,
+                x_label="Episodes",
+                y_label="Scores",
+                average_of_n_last=CONSECUTIVE_RUNS_TO_SOLVE,
+                show_goal=True,
+                show_trend=True,
+                show_legend=True,
+            )
+
+        self.scores.append(score)
+        mean_score = mean(self.scores)
+        print(f"Scores: (min: {min(self.scores)}, avg: {mean_score:.2f}, max: {max(self.scores)})")
+
+        if mean_score >= AVERAGE_SCORE_TO_SOLVE and len(self.scores) >= CONSECUTIVE_RUNS_TO_SOLVE:
+            solved_in = run - CONSECUTIVE_RUNS_TO_SOLVE
+            print(f"Solved in {solved_in} runs, {run} total runs.")
+            self._save_csv(SOLVED_CSV_PATH, solved_in)
+            if self.enable_plot:
+                self._save_png(
+                    input_path=SOLVED_CSV_PATH,
+                    output_path=SOLVED_PNG_PATH,
+                    x_label="Trials",
+                    y_label="Steps before solved",
+                    average_of_n_last=None,
+                    show_goal=False,
+                    show_trend=False,
+                    show_legend=False,
+                )
+            exit(0)
+
+    def generate_plots_from_csv(self):
+        """
+        训练结束后单独生成/刷新图表（不再重跑训练）。
+        """
         self._save_png(
             input_path=SCORES_CSV_PATH,
             output_path=SCORES_PNG_PATH,
@@ -52,26 +99,6 @@ class ScoreLogger:
             show_trend=True,
             show_legend=True,
         )
-
-        self.scores.append(score)
-        mean_score = mean(self.scores)
-        print(f"Scores: (min: {min(self.scores)}, avg: {mean_score:.2f}, max: {max(self.scores)})")
-
-        if mean_score >= AVERAGE_SCORE_TO_SOLVE and len(self.scores) >= CONSECUTIVE_RUNS_TO_SOLVE:
-            solved_in = run - CONSECUTIVE_RUNS_TO_SOLVE
-            print(f"Solved in {solved_in} runs, {run} total runs.")
-            self._save_csv(SOLVED_CSV_PATH, solved_in)
-            self._save_png(
-                input_path=SOLVED_CSV_PATH,
-                output_path=SOLVED_PNG_PATH,
-                x_label="Trials",
-                y_label="Steps before solved",
-                average_of_n_last=None,
-                show_goal=False,
-                show_trend=False,
-                show_legend=False,
-            )
-            exit(0)
 
     def _save_png(self, input_path, output_path,
                   x_label, y_label,
